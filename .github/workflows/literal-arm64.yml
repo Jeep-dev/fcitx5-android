@@ -1,4 +1,4 @@
-name: ARM64 installable APK
+name: ARM64 optimized installable APK
 on:
   push:
     branches: [codex/pinyin-literal-soft-keys]
@@ -25,35 +25,36 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y extra-cmake-modules gettext
       - uses: gradle/actions/setup-gradle@v6
-      - name: Build signed ARM64 APK
+      - name: Build optimized signed ARM64 APK
         shell: bash
         run: |
           set -o pipefail
           mkdir -p diagnostics
-          ./gradlew :app:assembleDebug -PbuildABI=arm64-v8a --stacktrace 2>&1 | tee diagnostics/gradle-build.log
+          ./gradlew :app:assembleRelease -PbuildABI=arm64-v8a --stacktrace 2>&1 | tee diagnostics/gradle-build.log
       - name: Upload Gradle build log
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: Fcitx5-Pinyin-Literal-ARM64-build-log
+          name: Fcitx5-Pinyin-Literal-ARM64-Release-build-log
           path: diagnostics/gradle-build.log
           if-no-files-found: ignore
-      - name: Verify signature and ARM64 package
+      - name: Verify signature, package and ARM64
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p deliverables
-          APK=$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)
+          APK=$(find app/build/outputs/apk/release -name '*.apk' -print -quit)
           test -n "$APK"
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee deliverables/signature.txt
           "$BUILD_TOOLS/aapt" dump badging "$APK" | tee deliverables/package.txt
+          grep -q "package: name='org.fcitx.fcitx5.android.literal'" deliverables/package.txt
           grep -q "native-code: 'arm64-v8a'" deliverables/package.txt
-          cp "$APK" deliverables/Fcitx5-Pinyin-Literal-ARM64.apk
+          cp "$APK" deliverables/Fcitx5-Pinyin-Literal-ARM64-Release.apk
           cd deliverables
-          sha256sum Fcitx5-Pinyin-Literal-ARM64.apk > SHA256SUMS
+          sha256sum Fcitx5-Pinyin-Literal-ARM64-Release.apk > SHA256SUMS
       - uses: actions/upload-artifact@v7
         with:
-          name: Fcitx5-Pinyin-Literal-ARM64
+          name: Fcitx5-Pinyin-Literal-ARM64-Release
           path: deliverables/
           if-no-files-found: error
