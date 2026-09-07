@@ -1,10 +1,12 @@
 --- a/im/pinyin/pinyin.cpp
 +++ b/im/pinyin/pinyin.cpp
-@@ -2004,1 +2004,36 @@
+@@ -2004,1 +2004,38 @@
 +    // Android soft keyboard: punctuation/digits terminate an unselected Latin
 +    // composition literally. Never change physical candidate-selection keys.
 +    if (entry.uniqueName() == "pinyin" && event.isVirtual() &&
-+        !event.key().states().testAny(KeyState::Ctrl | KeyState::Alt | KeyState::Super) &&
++        !event.key().states().test(KeyState::Ctrl) &&
++        !event.key().states().test(KeyState::Alt) &&
++        !event.key().states().test(KeyState::Super) &&
 +        state->mode_ == PinyinMode::Normal &&
 +        state->context_.selectedLength() == 0) {
 +        auto chr = keyChr.get();
