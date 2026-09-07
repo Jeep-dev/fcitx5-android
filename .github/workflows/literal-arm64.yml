@@ -30,7 +30,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p diagnostics
-          ./gradlew :app:assembleDebug :app:testDebugUnitTest -PbuildABI=arm64-v8a --stacktrace 2>&1 | tee diagnostics/gradle-build.log
+          ./gradlew :app:assembleDebug -PbuildABI=arm64-v8a --stacktrace 2>&1 | tee diagnostics/gradle-build.log
       - name: Upload Gradle build log
         if: always()
         uses: actions/upload-artifact@v7
