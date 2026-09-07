@@ -1,0 +1,39 @@
+--- a/im/pinyin/pinyin.cpp
++++ b/im/pinyin/pinyin.cpp
+@@ -2004,1 +2004,36 @@
++    // Android soft keyboard: punctuation/digits terminate an unselected Latin
++    // composition literally. Never change physical candidate-selection keys.
++    if (entry.uniqueName() == "pinyin" && event.isVirtual() &&
++        !event.key().states().testAny(KeyState::Ctrl | KeyState::Alt | KeyState::Super) &&
++        state->mode_ == PinyinMode::Normal &&
++        state->context_.selectedLength() == 0) {
++        auto chr = keyChr.get();
++        const auto sym = event.key().sym();
++        if (sym >= FcitxKey_KP_0 && sym <= FcitxKey_KP_9) {
++            chr = '0' + (sym - FcitxKey_KP_0);
++        } else {
++            switch (sym) {
++            case FcitxKey_KP_Add: chr = '+'; break;
++            case FcitxKey_KP_Subtract: chr = '-'; break;
++            case FcitxKey_KP_Multiply: chr = '*'; break;
++            case FcitxKey_KP_Divide: chr = '/'; break;
++            case FcitxKey_KP_Decimal: chr = '.'; break;
++            case FcitxKey_KP_Equal: chr = '='; break;
++            default: break;
++            }
++        }
++        const auto &raw = state->context_.userInput();
++        const auto latin = [](unsigned char c) {
++            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
++        };
++        if (chr >= '!' && chr <= '~' && !latin(chr) &&
++            !raw.empty() && std::all_of(raw.begin(), raw.end(), latin)) {
++            const std::string literal = raw + static_cast<char>(chr);
++            event.filterAndAccept();
++            doReset(inputContext);
++            inputContext->commitString(literal);
++            return;
++        }
++    }
++
+     // Small hack to debug tabbed candidate on desktop.

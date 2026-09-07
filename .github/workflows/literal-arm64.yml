@@ -1,0 +1,48 @@
+name: ARM64 installable APK
+on:
+  push:
+    branches: [codex/pinyin-literal-soft-keys]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - name: Install build dependencies
+        run: |
+          sdkmanager --install "cmake;3.31.6"
+          sudo apt-get update
+          sudo apt-get install -y extra-cmake-modules gettext
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build signed ARM64 APK
+        run: ./gradlew :app:assembleDebug :app:testDebugUnitTest -PbuildABI=arm64-v8a --stacktrace
+      - name: Verify signature and ARM64 package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deliverables
+          APK=$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)
+          test -n "$APK"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee deliverables/signature.txt
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | tee deliverables/package.txt
+          grep -q "native-code: 'arm64-v8a'" deliverables/package.txt
+          cp "$APK" deliverables/Fcitx5-Pinyin-Literal-ARM64.apk
+          cd deliverables
+          sha256sum Fcitx5-Pinyin-Literal-ARM64.apk > SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Fcitx5-Pinyin-Literal-ARM64
+          path: deliverables/
+          if-no-files-found: error

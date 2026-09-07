@@ -97,8 +97,16 @@ class CommonKeyActionListener :
                     sendKey(action.sym, action.states)
                 }
                 is CommitAction -> service.postFcitxJob {
-                    commitAndReset()
-                    service.lifecycleScope.launch { service.commitText(action.text) }
+                    // Symbol picker entries use CommitAction instead of a key event.
+                    val c = action.text.singleOrNull()
+                    if (inputMethodEntryCached.uniqueName == "pinyin" &&
+                        c != null && c in '!'..'~' && !c.isLetter() &&
+                        (clientPreeditCached.isNotEmpty() || inputPanelCached.preedit.isNotEmpty())) {
+                        sendKey(action.text, org.fcitx.fcitx5.android.core.KeyStates.Virtual.states)
+                    } else {
+                        commitAndReset()
+                        service.lifecycleScope.launch { service.commitText(action.text) }
+                    }
                 }
                 is QuickPhraseAction -> service.postFcitxJob {
                     commitAndReset()
