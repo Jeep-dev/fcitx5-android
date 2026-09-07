@@ -26,7 +26,18 @@ jobs:
           sudo apt-get install -y extra-cmake-modules gettext
       - uses: gradle/actions/setup-gradle@v6
       - name: Build signed ARM64 APK
-        run: ./gradlew :app:assembleDebug :app:testDebugUnitTest -PbuildABI=arm64-v8a --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p diagnostics
+          ./gradlew :app:assembleDebug :app:testDebugUnitTest -PbuildABI=arm64-v8a --stacktrace 2>&1 | tee diagnostics/gradle-build.log
+      - name: Upload Gradle build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Fcitx5-Pinyin-Literal-ARM64-build-log
+          path: diagnostics/gradle-build.log
+          if-no-files-found: ignore
       - name: Verify signature and ARM64 package
         shell: bash
         run: |
