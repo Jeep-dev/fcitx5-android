@@ -169,9 +169,14 @@ class TextKeyboard(
             append(ime.displayName)
             ime.subMode.run { label.ifEmpty { name.ifEmpty { null } } }?.let { append(" ($it)") }
         }
-        if (capsState != CapsState.None) {
-            switchCapsState()
-        }
+    capsState = if (ime.uniqueName == "keyboard-us") {
+    CapsState.Once
+} else {
+    CapsState.None
+}
+
+updateCapsButtonIcon()
+updateAlphabetKeys()
     }
 
     private fun transformPopupPreview(c: String): String {
