@@ -173,7 +173,7 @@ class AppPrefs(private val sharedPreferences: SharedPreferences) {
         val spaceKeyLongPressBehavior = enumList(
             R.string.space_long_press_behavior,
             "space_long_press_behavior",
-            SpaceLongPressBehavior.None
+            SpaceLongPressBehavior.VoiceInput
         )
         val spaceSwipeMoveCursor =
             switch(R.string.space_swipe_move_cursor, "space_swipe_move_cursor", true)
@@ -371,6 +371,34 @@ class AppPrefs(private val sharedPreferences: SharedPreferences) {
         )
     }
 
+    /**
+     * Not included in [syncToDeviceEncryptedStorage] since it contains the API key.
+     */
+    inner class VoiceInput : ManagedPreferenceCategory(R.string.voice_input, sharedPreferences) {
+        val apiUrl = string(
+            R.string.voice_input_api_url,
+            "voice_input_api_url",
+            "https://api.openai.com/v1/audio/transcriptions"
+        )
+        val apiKey = string(R.string.voice_input_api_key, "voice_input_api_key", "", secret = true)
+        val model = string(R.string.voice_input_model, "voice_input_model", "whisper-1")
+        val language = string(R.string.voice_input_language, "voice_input_language", "zh")
+        val prompt = string(
+            R.string.voice_input_prompt,
+            "voice_input_prompt",
+            "以下是普通话的句子，使用简体中文和标点符号。"
+        )
+        val maxDuration = int(
+            R.string.voice_input_max_duration,
+            "voice_input_max_duration",
+            60,
+            10,
+            300,
+            "s",
+            10
+        )
+    }
+
     private val providers = mutableListOf<ManagedPreferenceProvider>()
 
     fun <T : ManagedPreferenceProvider> registerProvider(
@@ -390,6 +418,7 @@ class AppPrefs(private val sharedPreferences: SharedPreferences) {
     val candidates = Candidates().register()
     val clipboard = Clipboard().register()
     val symbols = Symbols().register()
+    val voiceInput = VoiceInput().register()
     val advanced = Advanced().register()
 
     @Keep
