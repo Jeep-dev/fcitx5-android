@@ -101,6 +101,7 @@ class TextKeyboard(
         allViews.filterIsInstance(TextKeyView::class.java).toList()
     }
 
+    private var isEnglishKeyboard = false
     private var capsState: CapsState = CapsState.None
 
     private fun transformAlphabet(c: String): String {
@@ -150,7 +151,7 @@ class TextKeyboard(
     }
 
     override fun onAttach() {
-        capsState = CapsState.None
+        capsState = if (isEnglishKeyboard) CapsState.Once else CapsState.None
         updateCapsButtonIcon()
         updateAlphabetKeys()
     }
@@ -169,9 +170,10 @@ class TextKeyboard(
             append(ime.displayName)
             ime.subMode.run { label.ifEmpty { name.ifEmpty { null } } }?.let { append(" ($it)") }
         }
-        if (capsState != CapsState.None) {
-            switchCapsState()
-        }
+        isEnglishKeyboard = ime.uniqueName == "keyboard-us"
+        capsState = if (isEnglishKeyboard) CapsState.Once else CapsState.None
+        updateCapsButtonIcon()
+        updateAlphabetKeys()
     }
 
     private fun transformPopupPreview(c: String): String {

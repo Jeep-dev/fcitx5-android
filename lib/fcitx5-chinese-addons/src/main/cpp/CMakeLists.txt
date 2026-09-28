@@ -51,6 +51,21 @@ option(USE_WEBKIT "" OFF)
 option(ENABLE_CLOUDPINYIN "" OFF)
 # prefer OpenCC_DIR rather than fcitx5-chinese-addons/cmake/FindOpenCC.cmake
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+# Apply the Android-only pinyin behavior patch to the pinned upstream source.
+find_package(Git REQUIRED)
+set(PINYIN_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/pinyin-literal-soft-keys.patch")
+set(PINYIN_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/fcitx5-chinese-addons")
+execute_process(COMMAND "${GIT_EXECUTABLE}" apply --reverse --check "${PINYIN_PATCH}"
+    WORKING_DIRECTORY "${PINYIN_SOURCE}" RESULT_VARIABLE PATCH_APPLIED
+    OUTPUT_QUIET ERROR_QUIET)
+if(NOT PATCH_APPLIED EQUAL 0)
+    execute_process(COMMAND "${GIT_EXECUTABLE}" apply "${PINYIN_PATCH}"
+        WORKING_DIRECTORY "${PINYIN_SOURCE}" RESULT_VARIABLE PATCH_RESULT
+        ERROR_VARIABLE PATCH_ERROR)
+    if(NOT PATCH_RESULT EQUAL 0)
+        message(FATAL_ERROR "Cannot apply pinyin soft-key patch: ${PATCH_ERROR}")
+    endif()
+endif()
 add_subdirectory(fcitx5-chinese-addons)
 # rename to include executable in apk
 set_target_properties(scel2org5 PROPERTIES OUTPUT_NAME libscel2org5.so)

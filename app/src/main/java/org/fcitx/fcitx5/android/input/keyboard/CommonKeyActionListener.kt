@@ -33,6 +33,7 @@ import org.fcitx.fcitx5.android.input.keyboard.KeyAction.SpaceLongPressAction
 import org.fcitx.fcitx5.android.input.keyboard.KeyAction.SymAction
 import org.fcitx.fcitx5.android.input.keyboard.KeyAction.UnicodeAction
 import org.fcitx.fcitx5.android.input.picker.PickerWindow
+import org.fcitx.fcitx5.android.input.voice.VoiceInputWindow
 import org.fcitx.fcitx5.android.input.wm.InputWindowManager
 import org.fcitx.fcitx5.android.utils.switchToNextIME
 import org.mechdancer.dependency.Dependent
@@ -97,8 +98,16 @@ class CommonKeyActionListener :
                     sendKey(action.sym, action.states)
                 }
                 is CommitAction -> service.postFcitxJob {
-                    commitAndReset()
-                    service.lifecycleScope.launch { service.commitText(action.text) }
+                    // Symbol picker entries use CommitAction instead of a key event.
+                    val c = action.text.singleOrNull()
+                    if (inputMethodEntryCached.uniqueName == "pinyin" &&
+                        c != null && c in '!'..'~' && !c.isLetter() &&
+                        (clientPreeditCached.isNotEmpty() || inputPanelCached.preedit.isNotEmpty())) {
+                        sendKey(action.text, org.fcitx.fcitx5.android.core.KeyStates.Virtual.states)
+                    } else {
+                        commitAndReset()
+                        service.lifecycleScope.launch { service.commitText(action.text) }
+                    }
                 }
                 is QuickPhraseAction -> service.postFcitxJob {
                     commitAndReset()
@@ -180,6 +189,12 @@ class CommonKeyActionListener :
                             toggleIme()
                         }
                         SpaceLongPressBehavior.ShowPicker -> showInputMethodPicker()
+                        SpaceLongPressBehavior.VoiceInput -> {
+                            service.postFcitxJob { commitAndReset() }
+                            ContextCompat.getMainExecutor(service).execute {
+                                windowManager.attachWindow(VoiceInputWindow())
+                            }
+                        }
                     }
                 }
                 else -> {}

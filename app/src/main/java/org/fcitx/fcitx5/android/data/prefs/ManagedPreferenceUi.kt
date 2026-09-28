@@ -5,6 +5,7 @@
 package org.fcitx.fcitx5.android.data.prefs
 
 import android.content.Context
+import android.text.InputType
 import androidx.annotation.StringRes
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
@@ -97,6 +98,40 @@ abstract class ManagedPreferenceUi<T : Preference>(
                     preference.entry
                 } else {
                     context.getString(R.string._not_available_)
+                }
+            }
+        }
+    }
+
+    class EditTextString(
+        @StringRes
+        val title: Int,
+        key: String,
+        val defaultValue: String,
+        val secret: Boolean = false,
+        enableUiOn: (() -> Boolean)? = null
+    ) : ManagedPreferenceUi<EditTextPreference>(key, enableUiOn) {
+        override fun createUi(context: Context) = EditTextPreference(context).apply {
+            key = this@EditTextString.key
+            isIconSpaceReserved = false
+            isSingleLineTitle = false
+            setDefaultValue(this@EditTextString.defaultValue)
+            setTitle(this@EditTextString.title)
+            setDialogTitle(this@EditTextString.title)
+            setOnBindEditTextListener {
+                it.isSingleLine = true
+                if (secret) {
+                    it.inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+            }
+            // never reveal secret values in summary
+            summaryProvider = Preference.SummaryProvider<EditTextPreference> { preference ->
+                val text = preference.text
+                when {
+                    text.isNullOrEmpty() -> context.getString(R.string.not_set)
+                    secret -> context.getString(R.string.value_set)
+                    else -> text
                 }
             }
         }

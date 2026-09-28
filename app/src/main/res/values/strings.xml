@@ -321,4 +321,27 @@
     <string name="keyboard_height_percent_base">Keyboard height percent base</string>
     <string name="display_metrics">Display metrics (Resources.getDisplayMetrics)</string>
     <string name="real_size">Real size (Display.getRealSize)</string>
+    <string name="space_behavior_voice_input">Voice input</string>
+    <string name="not_set">Not set</string>
+    <string name="value_set">Set</string>
+    <string name="voice_input">Voice input</string>
+    <string name="voice_input_api_url">Transcription API URL (OpenAI compatible)</string>
+    <string name="voice_input_api_key">API key</string>
+    <string name="voice_input_model">Model</string>
+    <string name="voice_input_language">Language (ISO-639-1, empty for auto detect)</string>
+    <string name="voice_input_prompt">Prompt</string>
+    <string name="voice_input_max_duration">Maximum recording duration</string>
+    <string name="voice_input_permission_granted">Microphone permission granted, long press space again to start voice input</string>
+    <string name="voice_input_permission_denied">Please allow microphone permission in system settings</string>
+    <string name="voice_input_need_permission">Microphone permission required</string>
+    <string name="voice_input_grant">Grant</string>
+    <string name="voice_input_not_configured">Voice input API not configured</string>
+    <string name="voice_input_open_settings">Settings</string>
+    <string name="voice_input_listening">Listening…</string>
+    <string name="voice_input_done">Done</string>
+    <string name="voice_input_transcribing">Recognizing…</string>
+    <string name="voice_input_failed">Recognition failed</string>
+    <string name="voice_input_retry">Retry</string>
+    <string name="voice_input_too_short">Recording too short</string>
+    <string name="voice_input_empty_result">No speech recognized</string>
 </resources>
